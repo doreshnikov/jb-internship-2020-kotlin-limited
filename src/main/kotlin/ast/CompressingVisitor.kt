@@ -1,5 +1,7 @@
 package ast
 
+import lexer.Token
+
 class CompressingVisitor : Visitor<Tree>() {
 
     override fun visitExpression(expression: Tree.Expression): Tree {
@@ -16,10 +18,13 @@ class CompressingVisitor : Visitor<Tree>() {
         // 2. flatten all constants and variables
         var constant = 0
         val variables = HashMap<Tree.Term.Variable, Int>()
-        for (term in newTerms) {
-            when (term.term) {
-                is Tree.Term.Integer -> if (term.positive) constant += term.term.value else constant -= term.term.value
-                is Tree.Term.Variable -> if (term.positive) variables.compute(term.term) { _, count ->
+        for (signedTerm in newTerms) {
+            when (signedTerm.term) {
+                is Tree.Term.Integer -> if (signedTerm.positive)
+                    constant += signedTerm.term.value
+                else constant -=
+                    signedTerm.term.value
+                is Tree.Term.Variable -> if (signedTerm.positive) variables.compute(signedTerm.term) { _, count ->
                     (count ?: 0) + 1
                 }
                 is Tree.Term.Wrapper -> throw IllegalStateException("No wrappers should be left after flattening")
@@ -44,9 +49,16 @@ class CompressingVisitor : Visitor<Tree>() {
     }
 
     override fun visitTermWithSign(termWithSign: Tree.TermWithSign): Tree {
-        val newTerm = visit(termWithSign.term)
+        var newTerm = visit(termWithSign.term)
+        if (newTerm is Tree.Term) {
+            newTerm = Tree.TermWithSign(true, newTerm)
+        }
         return when {
             termWithSign.positive -> newTerm
+            newTerm is Tree.TermWithSign -> when (newTerm.term) {
+                is Tree.Term.Wrapper -> throw IllegalStateException("Wrapper should have been flattened")
+                else -> Tree.TermWithSign(!newTerm.positive, newTerm.term)
+            }
             newTerm is Tree.Expression -> Tree.Expression(newTerm.children.map {
                 Tree.TermWithSign(
                     !it.positive,

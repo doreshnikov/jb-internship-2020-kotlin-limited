@@ -1,9 +1,9 @@
 package lexer
 
-class Cursor<T>(private val line: List<T>, private var location: Int) {
+class Cursor<T>(private val line: List<T>, private var location: Int = 0) {
 
     companion object {
-        operator fun invoke(line: String, location: Int) =
+        operator fun invoke(line: String, location: Int = 0) =
             Cursor(line.toList(), location)
     }
 

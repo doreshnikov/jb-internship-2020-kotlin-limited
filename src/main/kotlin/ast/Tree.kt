@@ -16,6 +16,7 @@ sealed class Tree {
                     val sign = when (val token = cursor().token) {
                         is Token.SymbolToken.Plus -> true
                         is Token.SymbolToken.Minus -> false
+                        is Token.SymbolToken.Close -> break
                         else -> throw IllegalStateException("Expected sign, got $token instead")
                     }
                     cursor.step()
@@ -29,11 +30,11 @@ sealed class Tree {
         override fun toString(): String {
             return buildString {
                 append('(')
-                children.forEachIndexed { index, term ->
+                children.forEachIndexed { index, signedTerm ->
                     if (index != 0) {
-                        append(if (term.positive) " + " else " - ")
+                        append(if (signedTerm.positive) " + " else " - ")
                     }
-                    append(term.toString())
+                    append(signedTerm.term.toString())
                 }
                 append(')')
             }
@@ -81,6 +82,17 @@ sealed class Tree {
         }
     }
 
-    class TermWithSign(val positive: Boolean, val term: Term): Tree()
+    class TermWithSign(val positive: Boolean, val term: Term): Tree() {
+        override fun toString(): String {
+            return buildString {
+                if (positive) {
+                    append(" + ")
+                } else {
+                    append(" - ")
+                }
+                append(term.toString())
+            }
+        }
+    }
 
 }

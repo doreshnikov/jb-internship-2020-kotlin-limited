@@ -16,7 +16,7 @@ sealed class Token {
         fun start(char: Char): TokenValue {
             for (token in all) {
                 if (token.acceptsFirst(char)) {
-                    return TokenValue(token)
+                    return TokenValue(token).apply { eat(char) }
                 }
             }
             throw IllegalArgumentException("No token starts with char '$char'")
