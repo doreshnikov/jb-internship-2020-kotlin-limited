@@ -10,4 +10,4 @@
 
 # Запуск
 
-Базовый тест расположен в [main.kt](main.kt)
+Базовый тест расположен в [main.kt](src/main/kotlin/main.kt)
